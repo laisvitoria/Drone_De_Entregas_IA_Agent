@@ -35,7 +35,9 @@ class Estado:
         self.bateria = bateria 
         self.entregou = entregou
     def __eq__(self, other):
-        return (self.x, self.y, self.bateria, self.entregou) == \ (other.x, other.y, other.bateria, other.entregou)
+        return (
+        	(self.x, self.y, self.bateria, self.entregou) == 
+        	(other.x, other.y, other.bateria, other.entregou))
     def __hash__(self):
         return hash((self.x, self.y, self.bateria, self.entregou))
     def __lt__(self, other):
@@ -71,7 +73,8 @@ MOVIMENTOS = [
                (-1, 0) # cima
              ]
 def sucessores(estado):
-    lista = [] for dx, dy in MOVIMENTOS:
+    lista = []
+    for dx, dy in MOVIMENTOS:
         nx = estado.x + dx
         ny = estado.y + dy 
         if not valido(nx, ny):
