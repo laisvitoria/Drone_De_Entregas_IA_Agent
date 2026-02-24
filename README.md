@@ -51,7 +51,7 @@ Formulação do Objetivo: Receber as coordenadas do destino.
 
 Formulação do Problema: Mapear os estados (posições atuais) e ações possíveis.
 
-Busca: Chamar o algoritmo (ex: A*) para encontrar a rota com o menor custo.
+Busca: Chamar o algoritmo  A* para encontrar a rota com o menor custo.
 
 Execução: Retornar a sequência de ações (caminho) e executá-las no ambiente até alcançar a meta.
 
@@ -76,18 +76,16 @@ Para rodar este projeto na sua máquina, siga os passos abaixo:
 Clone este repositório:
 
 Bash
-git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git clone https://github.com/laisvitoria/Drone_De_Entregas_IA_Agent/
 Navegue até o diretório do projeto:
 
 Bash
-cd SEU_REPOSITORIO
-(Opcional) Crie e ative um ambiente virtual:
+cd /Drone_De_Entregas_IA_Agent
 
 Bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
-Instale as dependências requeridas (incluindo pacotes do aima-python, se houver requirements.txt):
 
 Bash
 pip install -r requirements.txt
