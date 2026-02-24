@@ -109,9 +109,10 @@ class DroneDeliveryProblem(Problem):
 
     def goal_test(self, state):
 
-        _, entregas, _ = state
+        pos, entregas, bateria = state
 
-        return len(entregas) == 0
+        # objetivo: todas entregas feitas E drone na base
+        return len(entregas) == 0 and pos == self.base
 
     # --------------------------------------------------
 
@@ -125,16 +126,16 @@ class DroneDeliveryProblem(Problem):
 
         pos, entregas, bateria = node.state
 
-        if not entregas:
-            return 0
+        # se ainda há entregas → ir até a entrega mais próxima
+        if entregas:
 
-        return min(
+            return min(
+                abs(pos[0] - ex) + abs(pos[1] - ey)
+                for ex, ey in entregas
+            )
 
-            abs(pos[0] - ex) + abs(pos[1] - ey)
-
-            for ex, ey in entregas
-
-        )
+        # se não há entregas → voltar para base
+        return abs(pos[0] - self.base[0]) + abs(pos[1] - self.base[1])
 
     # --------------------------------------------------
 
