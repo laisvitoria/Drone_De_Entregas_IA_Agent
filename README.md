@@ -2,6 +2,9 @@
 
 Este é um repositório reservado à criação de um agente de Inteligência Artificial endereçado a resolver um problema proposto pela equipe do projeto. Especificado de acordo com o proposto em sala de aula durante a disciplina de Inteligência Artificial ofertada pela Universidade Federal de Sergipe (UFS), campus São Cristóvão.
 
+# Vídeo
+https://www.youtube.com/watch?v=XAGpr4lzM_c
+
 # Especificação do Problema
 
 O problema consiste em projetar um agente inteligente (Drone) capaz de realizar a entrega de um pacote saindo de uma base (origem) até o destino final (cliente), de forma autônoma e otimizada.
