@@ -157,9 +157,10 @@ def test_18_goal_test_falso_ainda_ha_entregas():
     estado = ((0, 0), frozenset([(2, 0)]), 10)
     assert problema.goal_test(estado) is False
 
-def test_19_goal_test_verdadeiro_entregas_vazias():
+def test_19_goal_test_verdadeiro_entregas_feitas_e_na_base():
     problema = DroneDeliveryProblem(MAPA_PADRAO)
-    estado = ((2, 0), frozenset([]), 5)
+    # Entregas vazias E o drone voltou para a posição da base
+    estado = (problema.base, frozenset([]), 5)
     assert problema.goal_test(estado) is True
 
 def test_20_path_cost_sempre_incrementa_um():
