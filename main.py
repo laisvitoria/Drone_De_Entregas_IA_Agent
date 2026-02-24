@@ -25,5 +25,3 @@ env = DroneEnvironment(MAPA, problem)
 agent = DroneAgent(problem)
 
 env.run(agent)
-
-test_a_star_integro()
