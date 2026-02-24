@@ -1,18 +1,22 @@
-from search import astar_search
-from drone_delivery_problem import DroneDeliveryProblem
+from agentes.drone_agent import DroneAgent
+from env.drone_environment import DroneEnvironment
 
-problem = DroneDeliveryProblem()
+def main():
 
-solution = astar_search(problem)
+    env = DroneEnvironment(
+        width=10,
+        height=10,
+        deliveries=[(3, 3), (7, 2)],
+        obstacles=[(5, 5)]
+    )
 
-if solution:
+    agent = DroneAgent(env)
 
-    print("Solução encontrada:\n")
+    env.add_agent(agent)
 
-    for node in solution.path():
-        print(node.state)
+    # CORRETO:
+    env.run(steps=1000)
 
-    print("\nTotal de passos:", len(solution.path()) - 1)
 
-else:
-    print("Sem solução.")
+if __name__ == "__main__":
+    main()
