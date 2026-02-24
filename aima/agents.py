@@ -29,10 +29,19 @@ EnvCanvas ## Canvas to display the environment of an EnvGUI
 # TODO
 # Speed control in GUI does not have any effect -- fix it.
 
-from utils import distance_squared, turn_heading
+from aima.utils import distance_squared, turn_heading
 from statistics import mean
-from ipythonblocks import BlockGrid
-from IPython.display import HTML, display, clear_output
+try:
+    from ipythonblocks import BlockGrid
+except ImportError:
+    BlockGrid = None
+
+try:
+    from IPython.display import HTML, display, clear_output
+except ImportError:
+    HTML = None
+    display = None
+    clear_output = None
 from time import sleep
 
 import random
