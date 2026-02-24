@@ -1,80 +1,117 @@
-# problems/drone_delivery_problem.py
-
 from aima.search import Problem
-import math
-
 
 class DroneDeliveryProblem(Problem):
 
-    def __init__(self, initial, goal=(), grid_size=(10, 10), obstacles=None):
-        """
-        initial = (posição, entregas_restantes)
+    def __init__(self, mapa, max_bateria=20):
 
-        exemplo:
-        ((0,0), ((3,3),(7,2)))
-        """
+        self.mapa = mapa
+        self.max_bateria = max_bateria
 
-        super().__init__(initial, goal)
+        self.linhas = len(mapa)
+        self.colunas = len(mapa[0])
 
-        self.width = grid_size[0]
-        self.height = grid_size[1]
+        self.base = None
+        self.recargas = set()
+        self.entregas = set()
 
-        self.obstacles = obstacles if obstacles else []
+        # extrair informações do mapa
+        for i in range(self.linhas):
+            for j in range(self.colunas):
 
-        self.moves = {
-            "UP": (0, -1),
-            "DOWN": (0, 1),
-            "LEFT": (-1, 0),
-            "RIGHT": (1, 0)
-        }
+                if mapa[i][j] == 'S':
+                    self.base = (i, j)
+
+                elif mapa[i][j] == 'R':
+                    self.recargas.add((i, j))
+
+                elif mapa[i][j] == 'D':
+                    self.entregas.add((i, j))
+
+        estado_inicial = (
+            self.base,
+            frozenset(self.entregas),
+            self.max_bateria
+        )
+
+        super().__init__(estado_inicial)
 
     # --------------------------------------------------
 
     def actions(self, state):
 
-        position, deliveries = state
+        (x, y), entregas, bateria = state
 
-        valid = []
+        if bateria <= 0:
+            return ["NOOP"]
 
-        for action, move in self.moves.items():
+        movimentos = {
 
-            new_position = (
-                position[0] + move[0],
-                position[1] + move[1]
-            )
+            "UP": (-1, 0),
+            "DOWN": (1, 0),
+            "LEFT": (0, -1),
+            "RIGHT": (0, 1)
 
-            if self.is_valid(new_position):
-                valid.append(action)
+        }
 
-        return valid
+        validas = []
+
+        for nome, (dx, dy) in movimentos.items():
+
+            nx, ny = x + dx, y + dy
+
+            if self.posicao_valida(nx, ny):
+
+                validas.append(nome)
+
+        return validas
 
     # --------------------------------------------------
 
     def result(self, state, action):
 
-        position, deliveries = state
+        if action == "NOOP":
+            return state
 
-        move = self.moves[action]
+        (x, y), entregas, bateria = state
 
-        new_position = (
-            position[0] + move[0],
-            position[1] + move[1]
+        movimentos = {
+
+            "UP": (-1, 0),
+            "DOWN": (1, 0),
+            "LEFT": (0, -1),
+            "RIGHT": (0, 1)
+
+        }
+
+        dx, dy = movimentos[action]
+
+        nx, ny = x + dx, y + dy
+
+        nova_bateria = bateria - 1
+
+        novas_entregas = set(entregas)
+
+        if (nx, ny) in novas_entregas:
+            novas_entregas.remove((nx, ny))
+
+        if (nx, ny) in self.recargas:
+            nova_bateria = self.max_bateria
+
+        return (
+
+            (nx, ny),
+            frozenset(novas_entregas),
+            nova_bateria
+
         )
-
-        deliveries = list(deliveries)
-
-        if new_position in deliveries:
-            deliveries.remove(new_position)
-
-        return (new_position, tuple(deliveries))
 
     # --------------------------------------------------
 
     def goal_test(self, state):
 
-        position, deliveries = state
+        _, entregas, _ = state
 
-        return len(deliveries) == 0
+        return len(entregas) == 0
 
     # --------------------------------------------------
 
@@ -86,33 +123,30 @@ class DroneDeliveryProblem(Problem):
 
     def h(self, node):
 
-        position, deliveries = node.state
+        pos, entregas, bateria = node.state
 
-        if not deliveries:
+        if not entregas:
             return 0
 
         return min(
-            self.distance(position, d)
-            for d in deliveries
+
+            abs(pos[0] - ex) + abs(pos[1] - ey)
+
+            for ex, ey in entregas
+
         )
 
     # --------------------------------------------------
 
-    def distance(self, a, b):
+    def posicao_valida(self, x, y):
 
-        return math.sqrt(
-            (a[0] - b[0])**2 +
-            (a[1] - b[1])**2
-        )
+        if x < 0 or x >= self.linhas:
+            return False
 
-    # --------------------------------------------------
+        if y < 0 or y >= self.colunas:
+            return False
 
-    def is_valid(self, position):
+        if self.mapa[x][y] == '#':
+            return False
 
-        x, y = position
-
-        return (
-            0 <= x < self.width and
-            0 <= y < self.height and
-            position not in self.obstacles
-        )
+        return True

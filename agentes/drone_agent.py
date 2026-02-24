@@ -1,125 +1,47 @@
 from aima.agents import Agent
 from aima.search import astar_search
-from problems.drone_delivery_problem import DroneDeliveryProblem
 
 
 class DroneAgent(Agent):
-    """
-    Agente de drone baseado em busca A* (AIMA compatible)
-    """
 
-    def __init__(self, environment):
-        """
-        environment : DroneEnvironment
-        """
+    def __init__(self, problem):
 
-        # CRÍTICO: passar programa no construtor do Agent
-        super().__init__(program=self.drone_program)
+        super().__init__()
 
-        self.environment = environment
+        self.problem = problem
 
-        # plano atual
         self.plan = []
 
-        # índice da ação atual
-        self.current_action_index = 0
-
-        # métricas
-        self.total_cost = 0
-        self.total_steps = 0
+        # OBRIGATÓRIO no AIMA
+        self.program = self.agent_program
 
     # --------------------------------------------------
 
-    def build_problem(self):
+    def agent_program(self, percept):
+
         """
-        Constrói problema baseado no estado atual do ambiente
-        """
-
-        initial_state = (
-            self.environment.drone_position,
-            tuple(self.environment.remaining_deliveries)
-        )
-
-        return DroneDeliveryProblem(
-            initial=initial_state,
-            goal=(),
-            grid_size=(self.environment.width, self.environment.height),
-            obstacles=self.environment.obstacles
-        )
-
-    # --------------------------------------------------
-
-    def generate_plan(self):
-        """
-        Executa A* para gerar plano
+        percept = estado atual do ambiente
         """
 
-        problem = self.build_problem()
+        # atualizar estado inicial do problema
+        self.problem.initial = percept
 
-        solution_node = astar_search(problem)
-
-        if solution_node is None:
-            print("Nenhuma solução encontrada.")
-            return []
-
-        plan = solution_node.solution()
-
-        print("\nPlano gerado:", plan)
-
-        return plan
-
-    # --------------------------------------------------
-
-    def drone_program(self, percept):
-        """
-        Programa principal do agente (AIMA required)
-        percept = informação vinda do ambiente
-        """
-
-        # Se não há mais entregas, não faz nada
-        if not self.environment.remaining_deliveries:
-
-            print("\nTodas as entregas concluídas.")
-
-            self.print_performance()
-
-            return None
-
-        # Se não tem plano, gera um
+        # se não houver plano, gerar novo
         if not self.plan:
 
-            self.plan = self.generate_plan()
-            self.current_action_index = 0
+            solution = astar_search(self.problem)
 
-            if not self.plan:
+            if solution is None:
+                print("Nenhuma solução encontrada")
                 return None
 
-        # Executa próxima ação
-        if self.current_action_index < len(self.plan):
+            self.plan = solution.solution()
 
-            action = self.plan[self.current_action_index]
+            print("Plano:", self.plan)
 
-            self.current_action_index += 1
+        # executar próxima ação
+        if self.plan:
 
-            self.total_steps += 1
-            self.total_cost += 1
-
-            return action
+            return self.plan.pop(0)
 
         return None
-
-    # --------------------------------------------------
-
-    def reset_plan(self):
-
-        self.plan = []
-        self.current_action_index = 0
-
-    # --------------------------------------------------
-
-    def print_performance(self):
-
-        print("\n===== PERFORMANCE DO AGENTE =====")
-
-        print("Passos:", self.total_steps)
-        print("Custo:", self.total_cost)

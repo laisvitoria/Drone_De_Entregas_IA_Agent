@@ -1,170 +1,95 @@
-# env/drone_environment.py
-
 from aima.agents import Environment
-
 
 class DroneEnvironment(Environment):
 
-    def __init__(self, width, height, deliveries, obstacles, recharge_points):
+    def __init__(self, mapa, problem):
 
         super().__init__()
 
-        self.width = width
-        self.height = height
+        self.mapa = mapa
+        self.problem = problem
 
-        self.base = (0, 0)
+        self.state = problem.initial
 
-        self.drone_position = self.base
+        self.step_count = 0
 
-        self.deliveries = deliveries
-        self.remaining_deliveries = list(deliveries)
+        self.history = set()
+        self.history.add(problem.initial[0])
 
-        self.obstacles = obstacles
-
-        self.recharge_points = recharge_points
-
-        self.history = [self.drone_position]
-
-        self.agents = []
-
-    # ----------------------------
-
-    def add_agent(self, agent):
-        self.agents.append(agent)
-
-    # ----------------------------
+    # --------------------------------------------------
 
     def percept(self, agent):
 
-        return {
-            "position": self.drone_position,
-            "deliveries": tuple(self.remaining_deliveries),
-            "recharge_points": tuple(self.recharge_points)
-        }
+        return self.state
 
-    # ----------------------------
+    # --------------------------------------------------
 
     def execute_action(self, agent, action):
 
-        moves = {
-            "UP": (0, -1),
-            "DOWN": (0, 1),
-            "LEFT": (-1, 0),
-            "RIGHT": (1, 0)
-        }
-
-        if action not in moves:
+        if action == "NOOP":
             return
 
-        dx, dy = moves[action]
+        self.state = self.problem.result(self.state, action)
 
-        x, y = self.drone_position
+        self.history.add(self.state[0])
 
-        new_position = (x + dx, y + dy)
+        self.step_count += 1
 
-        if not self.is_valid_position(new_position):
-            return
+        self.display()
 
-        self.drone_position = new_position
+    # --------------------------------------------------
 
-        self.history.append(new_position)
+    def run(self, agent, max_steps=100):
 
-        print("Drone moveu para:", new_position)
+        self.display()
 
-        # entrega
-        if new_position in self.remaining_deliveries:
+        for _ in range(max_steps):
 
-            self.remaining_deliveries.remove(new_position)
+            if self.problem.goal_test(self.state):
 
-            print("Entrega realizada em:", new_position)
-
-        # recarga
-        if new_position in self.recharge_points:
-
-            print("Drone recarregando em:", new_position)
-
-    # ----------------------------
-
-    def is_valid_position(self, position):
-
-        x, y = position
-
-        return (
-            0 <= x < self.width and
-            0 <= y < self.height and
-            position not in self.obstacles
-        )
-
-    # ----------------------------
-
-    def is_done(self):
-
-        return len(self.remaining_deliveries) == 0
-
-    # ----------------------------
-
-    def step(self):
-
-        for agent in self.agents:
+                print("Todas as entregas realizadas!")
+                return
 
             percept = self.percept(agent)
 
             action = agent.program(percept)
 
+            if action is None:
+                print("Agente terminou.")
+                return
+
             self.execute_action(agent, action)
 
-    # ----------------------------
+    # --------------------------------------------------
 
-    def run(self, steps=100):
+    def display(self):
 
-        step_count = 0
+        (x, y), entregas, bateria = self.state
 
-        while not self.is_done() and step_count < steps:
+        print("\nPasso:", self.step_count)
+        print("Bateria:", bateria)
+        print()
 
-            self.visualize()
+        for i in range(len(self.mapa)):
 
-            self.step()
+            linha = ""
 
-            step_count += 1
+            for j in range(len(self.mapa[0])):
 
-        self.visualize()
+                pos = (i, j)
 
-        print("\nSimulação finalizada.")
+                if pos == (x, y):
+                    linha += "A "
 
-    # ----------------------------
+                elif pos in entregas:
+                    linha += "D "
 
-    def visualize(self):
+                elif pos in self.history:
+                    linha += "* "
 
-        grid = [['.' for _ in range(self.width)] for _ in range(self.height)]
+                else:
+                    linha += self.mapa[i][j] + " "
 
-        # base
-        x, y = self.base
-        grid[y][x] = 'S'
+            print(linha)
 
-        # obstáculos
-        for (x, y) in self.obstacles:
-            grid[y][x] = '#'
-
-        # recarga
-        for (x, y) in self.recharge_points:
-            grid[y][x] = 'R'
-
-        # entregas pendentes
-        for (x, y) in self.remaining_deliveries:
-            grid[y][x] = 'D'
-
-        # caminho
-        for (x, y) in self.history:
-            if grid[y][x] == '.':
-                grid[y][x] = '*'
-
-        # drone atual
-        x, y = self.drone_position
-        grid[y][x] = 'A'
-
-        print("\nMAPA:")
-
-        for row in grid:
-            print(' '.join(row))
-
-        print("Legenda: S=Base A=Drone D=Entrega R=Recarga #=Obstáculo *=Caminho")
+        print("-------------------")

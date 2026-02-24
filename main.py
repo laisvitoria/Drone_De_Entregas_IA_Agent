@@ -1,34 +1,26 @@
-from env.drone_environment import DroneEnvironment
 from agentes.drone_agent import DroneAgent
+from env.drone_environment import DroneEnvironment
+from problems.drone_delivery_problem import DroneDeliveryProblem
 
-def main():
-    width = 5
-    height = 5
+MAPA = [
 
-    deliveries = [(4, 3)]
+    ['S', '.', '.', '.', 'D'],
+    ['.', '#', '#', '.', '.'],
+    ['.', '.', 'R', '.', '.'],
+    ['D', '#', '.', '.', '.'],
+    ['.', '.', '.', '.', 'D']
 
-    obstacles = [
-        (1, 1),
-        (2, 1),
-        (1, 3)
-    ]
+]
 
-    recharge_points = [(2, 2)]
+problem = DroneDeliveryProblem(
 
-    env = DroneEnvironment(
-        width,
-        height,
-        deliveries,
-        obstacles,
-        recharge_points
-    )
+    mapa=MAPA,
+    max_bateria=10
 
-    agent = DroneAgent(env)
+)
 
-    env.add_agent(agent)
+env = DroneEnvironment(MAPA, problem)
 
-    env.run(steps=50)
+agent = DroneAgent(problem)
 
-
-if __name__ == "__main__":
-    main()
+env.run(agent)
