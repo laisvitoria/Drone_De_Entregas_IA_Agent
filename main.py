@@ -1,21 +1,33 @@
-from agentes.drone_agent import DroneAgent
 from env.drone_environment import DroneEnvironment
+from agentes.drone_agent import DroneAgent
 
 def main():
+    width = 5
+    height = 5
+
+    deliveries = [(4, 3)]
+
+    obstacles = [
+        (1, 1),
+        (2, 1),
+        (1, 3)
+    ]
+
+    recharge_points = [(2, 2)]
 
     env = DroneEnvironment(
-        width=10,
-        height=10,
-        deliveries=[(3, 3), (7, 2)],
-        obstacles=[(5, 5)]
+        width,
+        height,
+        deliveries,
+        obstacles,
+        recharge_points
     )
 
     agent = DroneAgent(env)
 
     env.add_agent(agent)
 
-    # CORRETO:
-    env.run(steps=1000)
+    env.run(steps=50)
 
 
 if __name__ == "__main__":

@@ -1,70 +1,50 @@
 # env/drone_environment.py
 
 from aima.agents import Environment
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 class DroneEnvironment(Environment):
-    """
-    Ambiente de drone de entregas em grade (AIMA compatible)
-    """
 
-    def __init__(self, width=10, height=10, deliveries=None, obstacles=None):
+    def __init__(self, width, height, deliveries, obstacles, recharge_points):
 
         super().__init__()
 
         self.width = width
         self.height = height
 
-        # posição inicial do drone
-        self.drone_position = (0, 0)
+        self.base = (0, 0)
 
-        # entregas
-        self.deliveries = deliveries if deliveries else []
-        self.remaining_deliveries = list(self.deliveries)
+        self.drone_position = self.base
 
-        # obstáculos
-        self.obstacles = obstacles if obstacles else []
+        self.deliveries = deliveries
+        self.remaining_deliveries = list(deliveries)
 
-        # histórico do caminho
+        self.obstacles = obstacles
+
+        self.recharge_points = recharge_points
+
         self.history = [self.drone_position]
 
-        # lista de agentes no ambiente (AIMA padrão)
         self.agents = []
 
-    # --------------------------------------------------
+    # ----------------------------
 
     def add_agent(self, agent):
-        """
-        Adiciona agente ao ambiente (AIMA style)
-        """
-
         self.agents.append(agent)
 
-    # --------------------------------------------------
+    # ----------------------------
 
     def percept(self, agent):
-        """
-        Retorna percepto para o agente
-        """
 
-        return (
-            self.drone_position,
-            tuple(self.remaining_deliveries)
-        )
+        return {
+            "position": self.drone_position,
+            "deliveries": tuple(self.remaining_deliveries),
+            "recharge_points": tuple(self.recharge_points)
+        }
 
-    # --------------------------------------------------
+    # ----------------------------
 
     def execute_action(self, agent, action):
-        """
-        Executa ação do agente
-        """
-
-        if action is None:
-            return
-
-        x, y = self.drone_position
 
         moves = {
             "UP": (0, -1),
@@ -73,29 +53,37 @@ class DroneEnvironment(Environment):
             "RIGHT": (1, 0)
         }
 
-        move = moves.get(action, (0, 0))
+        if action not in moves:
+            return
 
-        new_position = (
-            x + move[0],
-            y + move[1]
-        )
+        dx, dy = moves[action]
 
-        if self.is_valid_position(new_position):
+        x, y = self.drone_position
 
-            self.drone_position = new_position
+        new_position = (x + dx, y + dy)
 
-            self.history.append(new_position)
+        if not self.is_valid_position(new_position):
+            return
 
-            print("Drone moveu para:", new_position)
+        self.drone_position = new_position
 
-            # verificar entrega
-            if new_position in self.remaining_deliveries:
+        self.history.append(new_position)
 
-                self.remaining_deliveries.remove(new_position)
+        print("Drone moveu para:", new_position)
 
-                print("Entrega realizada em:", new_position)
+        # entrega
+        if new_position in self.remaining_deliveries:
 
-    # --------------------------------------------------
+            self.remaining_deliveries.remove(new_position)
+
+            print("Entrega realizada em:", new_position)
+
+        # recarga
+        if new_position in self.recharge_points:
+
+            print("Drone recarregando em:", new_position)
+
+    # ----------------------------
 
     def is_valid_position(self, position):
 
@@ -107,18 +95,15 @@ class DroneEnvironment(Environment):
             position not in self.obstacles
         )
 
-    # --------------------------------------------------
+    # ----------------------------
 
     def is_done(self):
 
         return len(self.remaining_deliveries) == 0
 
-    # --------------------------------------------------
+    # ----------------------------
 
     def step(self):
-        """
-        Executa um passo (AIMA standard)
-        """
 
         for agent in self.agents:
 
@@ -128,20 +113,58 @@ class DroneEnvironment(Environment):
 
             self.execute_action(agent, action)
 
-    # --------------------------------------------------
+    # ----------------------------
 
-    def run(self, steps=1000):
-        """
-        Executa simulação completa (AIMA compatible)
-        """
+    def run(self, steps=100):
 
         step_count = 0
 
         while not self.is_done() and step_count < steps:
 
+            self.visualize()
+
             self.step()
 
             step_count += 1
 
+        self.visualize()
+
         print("\nSimulação finalizada.")
-        print("Passos executados:", step_count)
+
+    # ----------------------------
+
+    def visualize(self):
+
+        grid = [['.' for _ in range(self.width)] for _ in range(self.height)]
+
+        # base
+        x, y = self.base
+        grid[y][x] = 'S'
+
+        # obstáculos
+        for (x, y) in self.obstacles:
+            grid[y][x] = '#'
+
+        # recarga
+        for (x, y) in self.recharge_points:
+            grid[y][x] = 'R'
+
+        # entregas pendentes
+        for (x, y) in self.remaining_deliveries:
+            grid[y][x] = 'D'
+
+        # caminho
+        for (x, y) in self.history:
+            if grid[y][x] == '.':
+                grid[y][x] = '*'
+
+        # drone atual
+        x, y = self.drone_position
+        grid[y][x] = 'A'
+
+        print("\nMAPA:")
+
+        for row in grid:
+            print(' '.join(row))
+
+        print("Legenda: S=Base A=Drone D=Entrega R=Recarga #=Obstáculo *=Caminho")
